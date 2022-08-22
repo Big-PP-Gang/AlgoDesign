@@ -55,8 +55,12 @@ for i in range(len(input_img_paths)):
     mask_path = target_img_paths[i]
     mask = load_img(mask_path, color_mode='grayscale')
     mask = img_to_array(mask)
-    mask = tf.image.resize_with_pad(mask, IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, method=ResizeMethod.BILINEAR,
+    mask = tf.image.resize_with_pad(mask, IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, method=ResizeMethod.NEAREST_NEIGHBOR,
                                     antialias=False).numpy()
+    mask[mask == 110] = 1
+    mask[mask == 114] = 2
+    mask[mask == 119] = 3
+    mask[mask == 169] = 4
     Y[i] = mask
 
 train_test_split = int(len(input_img_paths) * 0.8)
@@ -138,7 +142,7 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
                    padding='same',
                    kernel_initializer='he_normal')(ublock9)
 
-    # conv10 = Conv2D(n_classes, kernel_size=1, padding='same', activation = 'softmax')(conv9)
+    #conv10 = Conv2D(n_classes, kernel_size=1, padding='same', activation = 'softmax')(conv9)
     conv10 = Activation('softmax')(conv9)
 
     model = tf.keras.Model(inputs=inputs, outputs=conv10)
@@ -147,6 +151,7 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
 
 
 unet = unet_model((IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_classes=5)
+unet.summary()
 
 EPOCHS = 20
 
@@ -164,17 +169,17 @@ plt.show()
 pred = predictions[i]
 pred = pred.argmax(axis=2)
 colour_mappings = {
-    'wall': (255, 255, 255),  # white
+    'wall': (191, 64, 191),  # white
     'insufficient': (255, 0, 0),  # red
     'sufficient': (0, 255, 0),  # green
     'window': (0, 0, 255),  # blue
     'bg': (0, 0, 0)
 }
 pred_img = np.ones((512, 512, 3))
-pred_img[pred == 0] = colour_mappings['wall']
-pred_img[pred == 1] = colour_mappings['insufficient']
-pred_img[pred == 2] = colour_mappings['sufficient']
+pred_img[pred == 0] = colour_mappings['bg']
+pred_img[pred == 1] = colour_mappings['sufficient']
+pred_img[pred == 2] = colour_mappings['insufficient']
 pred_img[pred == 3] = colour_mappings['window']
-pred_img[pred == 4] = colour_mappings['bg']
+pred_img[pred == 4] = colour_mappings['wall']
 imshow(pred_img)
 plt.show()
