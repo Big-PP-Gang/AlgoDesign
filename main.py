@@ -70,6 +70,7 @@ Y_train = Y
 X_test = X
 Y_test = Y
 
+
 def convolutional_block(inputs=None, n_filters=32, dropout_prob=0, max_pooling=True):
     conv = Conv2D(n_filters,
                   kernel_size=3,
@@ -142,7 +143,7 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
                    padding='same',
                    kernel_initializer='he_normal')(ublock9)
 
-    #conv10 = Conv2D(n_classes, kernel_size=1, padding='same', activation = 'softmax')(conv9)
+    # conv10 = Conv2D(n_classes, kernel_size=1, padding='same', activation = 'softmax')(conv9)
     conv10 = Activation('softmax')(conv9)
 
     model = tf.keras.Model(inputs=inputs, outputs=conv10)
@@ -153,12 +154,12 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
 unet = unet_model((IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_classes=5)
 unet.summary()
 
-EPOCHS = 20
+EPOCHS = 200
 
 unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-earlystopper = EarlyStopping(patience=5, verbose=1)
-model_history = unet.fit(X_train, Y_train, validation_split=0.1, batch_size=16, epochs=EPOCHS, callbacks=[earlystopper])
+# earlystopper = EarlyStopping(patience=1, verbose=1)
+model_history = unet.fit(X_train, Y_train, validation_split=0.1, batch_size=16, epochs=EPOCHS)
 
 predictions = unet.predict(X_test)
 i = 1
@@ -169,17 +170,17 @@ plt.show()
 pred = predictions[i]
 pred = pred.argmax(axis=2)
 colour_mappings = {
-    'wall': (191, 64, 191),  # white
+    'wall': (160, 32, 240),  # purple
     'insufficient': (255, 0, 0),  # red
     'sufficient': (0, 255, 0),  # green
     'window': (0, 0, 255),  # blue
-    'bg': (0, 0, 0)
+    'bg': (0, 0, 0)  # black
 }
 pred_img = np.ones((512, 512, 3))
 pred_img[pred == 0] = colour_mappings['bg']
-pred_img[pred == 1] = colour_mappings['sufficient']
+pred_img[pred == 1] = colour_mappings['window']
 pred_img[pred == 2] = colour_mappings['insufficient']
-pred_img[pred == 3] = colour_mappings['window']
-pred_img[pred == 4] = colour_mappings['wall']
+pred_img[pred == 3] = colour_mappings['wall']
+pred_img[pred == 4] = colour_mappings['sufficient']
 imshow(pred_img)
 plt.show()
