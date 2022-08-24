@@ -63,12 +63,11 @@ for i in range(len(input_img_paths)):
     mask[mask == 169] = 4
     Y[i] = mask
 
-train_test_split = int(len(input_img_paths) * 0.8)
-X_train = X
-Y_train = Y
-
-X_test = X
-Y_test = Y
+train_test_split = int(len(input_img_paths) * 0.9)
+X_train = X[:train_test_split]
+Y_train = Y[:train_test_split]
+X_test = X[train_test_split:]
+Y_test = Y[train_test_split:]
 
 
 def convolutional_block(inputs=None, n_filters=32, dropout_prob=0, max_pooling=True):
