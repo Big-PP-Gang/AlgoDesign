@@ -1,19 +1,17 @@
 import os
-import random
 
 import numpy as np
 import tensorflow as tf
 from keras.layers import Activation, Input
 from keras.utils.image_utils import ResizeMethod
 from keras_preprocessing.image import load_img, img_to_array
-from tensorflow import keras
 
 from keras.models import Model, load_model
 from keras.layers.merging import concatenate
-from keras.layers.core import Dropout, Lambda
+from keras.layers.core import Dropout
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.layers.pooling import MaxPooling2D
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping
 
 from skimage.io import imshow
 
@@ -160,6 +158,7 @@ unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=[
 # earlystopper = EarlyStopping(patience=1, verbose=1)
 model_history = unet.fit(X_train, Y_train, validation_split=0.1, batch_size=16, epochs=EPOCHS)
 
+print("training done")
 predictions = unet.predict(X_test)
 i = 1
 imshow(X_test[i])
@@ -183,3 +182,4 @@ pred_img[pred == 3] = colour_mappings['wall']
 pred_img[pred == 4] = colour_mappings['sufficient']
 imshow(pred_img)
 plt.show()
+unet.save("model/unet")
