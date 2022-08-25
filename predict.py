@@ -67,7 +67,7 @@ Y_train = Y[:train_test_split]
 X_test = X[train_test_split:]
 Y_test = Y[train_test_split:]
 
-unet = tf.keras.models.load_model('model/unet')
+unet = tf.keras.models.load_model('model/unet2')
 loss, acc = unet.evaluate(X_test, Y_test, verbose=2)
 print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
 

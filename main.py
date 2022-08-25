@@ -151,35 +151,11 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
 unet = unet_model((IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_classes=5)
 unet.summary()
 
-EPOCHS = 200
+EPOCHS = 100
 
 unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 # earlystopper = EarlyStopping(patience=1, verbose=1)
-model_history = unet.fit(X_train, Y_train, validation_split=0.1, batch_size=16, epochs=EPOCHS)
+model_history = unet.fit(X_train, Y_train, validation_split=0.2, batch_size=8, epochs=EPOCHS)
 
-print("training done")
-predictions = unet.predict(X_test)
-i = 1
-imshow(X_test[i])
-plt.show()
-imshow(np.squeeze(Y_test[i]))
-plt.show()
-pred = predictions[i]
-pred = pred.argmax(axis=2)
-colour_mappings = {
-    'wall': (160, 32, 240),  # purple
-    'insufficient': (255, 0, 0),  # red
-    'sufficient': (0, 255, 0),  # green
-    'window': (0, 0, 255),  # blue
-    'bg': (0, 0, 0)  # black
-}
-pred_img = np.ones((512, 512, 3))
-pred_img[pred == 0] = colour_mappings['bg']
-pred_img[pred == 1] = colour_mappings['window']
-pred_img[pred == 2] = colour_mappings['insufficient']
-pred_img[pred == 3] = colour_mappings['wall']
-pred_img[pred == 4] = colour_mappings['sufficient']
-imshow(pred_img)
-plt.show()
-unet.save("model/unet")
+unet.save("model/unet2")
