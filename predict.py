@@ -77,7 +77,7 @@ pred = pred.argmax(axis=2)
 
 # Transform gray-scaled images back to RGB
 colour_mappings = {
-    'wall': (160, 32, 240),  # purple
+    'wall': (255, 0, 255),  # purple
     'insufficient': (255, 0, 0),  # red
     'sufficient': (0, 255, 0),  # green
     'window': (0, 0, 255),  # blue
