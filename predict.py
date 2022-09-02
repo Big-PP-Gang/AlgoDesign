@@ -96,4 +96,3 @@ pred_img[pred == 3] = colour_mappings['wall']
 pred_img[pred == 4] = colour_mappings['sufficient']
 imshow(pred_img)
 plt.show()
-unet.save("model/unet")
