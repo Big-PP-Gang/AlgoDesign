@@ -2,21 +2,14 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from keras.layers import Activation, Input
 from keras.utils.image_utils import ResizeMethod
 from keras_preprocessing.image import load_img, img_to_array
-
-from keras.models import Model, load_model
-from keras.layers.merging import concatenate
-from keras.layers.core import Dropout
-from keras.layers.convolutional import Conv2D, Conv2DTranspose
-from keras.layers.pooling import MaxPooling2D
-from keras.callbacks import EarlyStopping
 
 from skimage.io import imshow
 
 import matplotlib.pyplot as plt
 
+# Load and transform the images, same as in train script
 input_dir = 'Dataset/images'
 target_dir = 'Dataset/masks'
 
@@ -67,12 +60,12 @@ Y_train = Y[:train_test_split]
 X_test = X[train_test_split:]
 Y_test = Y[train_test_split:]
 
-unet = tf.keras.models.load_model('model/unet2')
+# Load saved model and print accuracy
+unet = tf.keras.models.load_model('model/unet')
 loss, acc = unet.evaluate(X_test, Y_test, verbose=2)
 print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
 
-
-print("training done")
+# Show the result of one input, ground truth and the model prediction
 predictions = unet.predict(X_test)
 i = 1
 imshow(X_test[i])
@@ -81,6 +74,8 @@ imshow(np.squeeze(Y_test[i]))
 plt.show()
 pred = predictions[i]
 pred = pred.argmax(axis=2)
+
+# Transform gray-scaled images back to RGB
 colour_mappings = {
     'wall': (160, 32, 240),  # purple
     'insufficient': (255, 0, 0),  # red
@@ -94,5 +89,6 @@ pred_img[pred == 1] = colour_mappings['window']
 pred_img[pred == 2] = colour_mappings['insufficient']
 pred_img[pred == 3] = colour_mappings['wall']
 pred_img[pred == 4] = colour_mappings['sufficient']
+
 imshow(pred_img)
 plt.show()
