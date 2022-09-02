@@ -6,17 +6,12 @@ from keras.layers import Activation, Input
 from keras.utils.image_utils import ResizeMethod
 from keras_preprocessing.image import load_img, img_to_array
 
-from keras.models import Model, load_model
 from keras.layers.merging import concatenate
 from keras.layers.core import Dropout
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.layers.pooling import MaxPooling2D
-from keras.callbacks import EarlyStopping
 
-from skimage.io import imshow
-
-import matplotlib.pyplot as plt
-
+# Load images from directories
 input_dir = 'Dataset/images'
 target_dir = 'Dataset/masks'
 
@@ -35,6 +30,7 @@ target_img_paths = sorted(
     ]
 )
 
+
 IMG_WIDTH_HEIGHT = 512
 IMG_CHANNELS = 3
 classes = 5
@@ -42,6 +38,7 @@ classes = 5
 X = np.zeros((len(input_img_paths), IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, 3), dtype=np.float32)
 Y = np.zeros((len(input_img_paths), IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, 1), dtype=np.uint8)
 
+# Pad images to 512x512, transform ground truth to grayscale and convert them into an array
 for i in range(len(input_img_paths)):
     img_path = input_img_paths[i]
     img = load_img(img_path)
@@ -55,19 +52,21 @@ for i in range(len(input_img_paths)):
     mask = img_to_array(mask)
     mask = tf.image.resize_with_pad(mask, IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, method=ResizeMethod.NEAREST_NEIGHBOR,
                                     antialias=False).numpy()
+    # set correct class labels
     mask[mask == 110] = 1
     mask[mask == 114] = 2
     mask[mask == 119] = 3
     mask[mask == 169] = 4
     Y[i] = mask
 
+# Split into train and test set
 train_test_split = int(len(input_img_paths) * 0.9)
 X_train = X[:train_test_split]
 Y_train = Y[:train_test_split]
 X_test = X[train_test_split:]
 Y_test = Y[train_test_split:]
 
-
+# Build the U-Net
 def convolutional_block(inputs=None, n_filters=32, dropout_prob=0, max_pooling=True):
     conv = Conv2D(n_filters,
                   kernel_size=3,
@@ -85,12 +84,9 @@ def convolutional_block(inputs=None, n_filters=32, dropout_prob=0, max_pooling=T
 
     if max_pooling:
         next_layer = MaxPooling2D(pool_size=(2, 2))(conv)
-
-
     else:
         next_layer = conv
 
-    # conv = BatchNormalization()(conv)
     skip_connection = conv
 
     return next_layer, skip_connection
@@ -140,7 +136,6 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
                    padding='same',
                    kernel_initializer='he_normal')(ublock9)
 
-    # conv10 = Conv2D(n_classes, kernel_size=1, padding='same', activation = 'softmax')(conv9)
     conv10 = Activation('softmax')(conv9)
 
     model = tf.keras.Model(inputs=inputs, outputs=conv10)
@@ -151,11 +146,11 @@ def unet_model(input_size=(IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_
 unet = unet_model((IMG_WIDTH_HEIGHT, IMG_WIDTH_HEIGHT, IMG_CHANNELS), n_classes=5)
 unet.summary()
 
+# Perform training
 EPOCHS = 100
 
 unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-# earlystopper = EarlyStopping(patience=1, verbose=1)
 model_history = unet.fit(X_train, Y_train, validation_split=0.2, batch_size=8, epochs=EPOCHS)
 
-unet.save("model/unet2")
+unet.save("model/unet")
